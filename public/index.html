@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Metrics Fetcher</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 1em;
+        }
+        section {
+            margin: 2em;
+        }
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 80%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .chart {
+            width: 80%;
+            height: 400px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Stock Metrics Fetcher</h1>
+        <p>Enter up to 5 stock symbols to fetch and display their financial metrics.</p>
+    </header>
+    <section>
+        <input type="text" id="symbol1" placeholder="Stock Symbol 1">
+        <input type="text" id="symbol2" placeholder="Stock Symbol 2">
+        <input type="text" id="symbol3" placeholder="Stock Symbol 3">
+        <input type="text" id="symbol4" placeholder="Stock Symbol 4">
+        <input type="text" id="symbol5" placeholder="Stock Symbol 5">
+        <button onclick="fetchStockData()">Run</button>
+    </section>
+    <section>
+        <table id="stockTable">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>ROE (%)</th>
+                    <th>Operating Profit Margin (%)</th>
+                    <th>Net Profit Margin (%)</th>
+                    <th>Asset Turnover Ratio (%)</th>
+                    <th>Debt to Equity Ratio (%)</th>
+                    <th>Debt Ratio (%)</th>
+                    <th>Cash per Share</th>
+                    <th>Cash per share (%)</th>
+                    <th>PE</th>
+                    <th>PEG</th>
+                    <th>EV/Sales</th>
+                    <th>Stock Price</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </section>
+    <section class="chart">
+        <canvas id="stockChart"></canvas>
+    </section>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        async function fetchStockData() {
+            const symbols = [
+                document.getElementById('symbol1').value,
+                document.getElementById('symbol2').value,
+                document.getElementById('symbol3').value,
+                document.getElementById('symbol4').value,
+                document.getElementById('symbol5').value
+            ].filter(symbol => symbol); // Remove empty inputs
+
+            const stockData = [];
+
+            for (const symbol of symbols) {
+                try {
+                    const response = await fetch(`https://europe-west6-stock-level-74c5b.cloudfunctions.net/stockData?symbol=${symbol}`);
+                    const data = await response.json();
+                    stockData.push(data);
+                } catch (error) {
+                    console.error(`Error fetching data for ${symbol}:`, error);
+                    alert(`Error fetching data for ${symbol}: ${error.message}`);
+                    return;
+                }
+            }
+
+            displayTable(stockData);
+            displayChart(stockData);
+        }
+
+        function displayTable(data) {
+            const tableBody = document.getElementById('stockTable').querySelector('tbody');
+            tableBody.innerHTML = ''; // Clear previous results
+
+            data.forEach(stock => {
+                const row = document.createElement('tr');
+                Object.values(stock).forEach(value => {
+                    const cell = document.createElement('td');
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+                tableBody.appendChild(row);
+            });
+        }
+
+        function displayChart(data) {
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            const labels = data.map(stock => stock.Symbol);
+            const roeData = data.map(stock => parseFloat(stock['ROE (%)']));
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'ROE (%)',
+                        data: roeData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Welcome to Firebase Hosting</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/10.12.5/firebase-app-compat.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/10.12.5/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/10.12.5/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/10.12.5/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/10.12.5/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/10.12.5/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/10.12.5/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/10.12.5/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/10.12.5/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/10.12.5/firebase-performance-compat.js"></script>
+    <!-- 
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+
+    <style media="screen">
+      body { background: #ECEFF1; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+      #message { background: white; max-width: 360px; margin: 100px auto 16px; padding: 32px 24px; border-radius: 3px; }
+      #message h2 { color: #ffa100; font-weight: bold; font-size: 16px; margin: 0 0 8px; }
+      #message h1 { font-size: 22px; font-weight: 300; color: rgba(0,0,0,0.6); margin: 0 0 16px;}
+      #message p { line-height: 140%; margin: 16px 0 24px; font-size: 14px; }
+      #message a { display: block; text-align: center; background: #039be5; text-transform: uppercase; text-decoration: none; color: white; padding: 16px; border-radius: 4px; }
+      #message, #message a { box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); }
+      #load { color: rgba(0,0,0,0.4); text-align: center; font-size: 13px; }
+      @media (max-width: 600px) {
+        body, #message { margin-top: 0; background: white; box-shadow: none; }
+        body { border-top: 16px solid #ffa100; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="message">
+      <h2>Welcome</h2>
+      <h1>Firebase Hosting Setup Complete</h1>
+      <p>You're seeing this because you've successfully setup Firebase Hosting. Now it's time to go build something extraordinary!</p>
+      <a target="_blank" href="https://firebase.google.com/docs/hosting/">Open Hosting Documentation</a>
+    </div>
+    <p id="load">Firebase SDK Loading&hellip;</p>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const loadEl = document.querySelector('#load');
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+        // // The Firebase SDK is initialized and available here!
+        //
+        // firebase.auth().onAuthStateChanged(user => { });
+        // firebase.database().ref('/path/to/ref').on('value', snapshot => { });
+        // firebase.firestore().doc('/foo/bar').get().then(() => { });
+        // firebase.functions().httpsCallable('yourFunction')().then(() => { });
+        // firebase.messaging().requestPermission().then(() => { });
+        // firebase.storage().ref('/path/to/ref').getDownloadURL().then(() => { });
+        // firebase.analytics(); // call to activate
+        // firebase.analytics().logEvent('tutorial_completed');
+        // firebase.performance(); // call to activate
+        //
+        // // 🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥
+
+        try {
+          let app = firebase.app();
+          let features = [
+            'auth', 
+            'database', 
+            'firestore',
+            'functions',
+            'messaging', 
+            'storage', 
+            'analytics', 
+            'remoteConfig',
+            'performance',
+          ].filter(feature => typeof app[feature] === 'function');
+          loadEl.textContent = `Firebase SDK loaded with ${features.join(', ')}`;
+        } catch (e) {
+          console.error(e);
+          loadEl.textContent = 'Error loading the Firebase SDK, check the console.';
+        }
+      });
+    </script>
+  </body>
+</html>
