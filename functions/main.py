@@ -44,7 +44,7 @@ if __name__ == "__main__":
     symbol = sys.argv[1]
     try:
         data = fetch_stock_data(symbol)
-        print(json.dumps(data))
+        print(json.dumps([data]))
     except Exception as e:
         print(json.dumps({"error": str(e)}))
         sys.exit(1)
